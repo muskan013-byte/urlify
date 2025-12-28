@@ -1,23 +1,29 @@
-function shortenUrl() {
-  const input = document.querySelector("input");
-  const longUrl = input.value;
+const shortenBtn = document.querySelector('button'); // Ensure this matches your HTML
+const inputField = document.querySelector('input');
 
-  if (longUrl === "") {
-    alert("Please enter a URL");
-    return;
-  }
+shortenBtn.addEventListener('click', async () => {
+    const longUrl = inputField.value.trim();
+    if (!longUrl) return alert("Please enter a link!");
 
-  // Temporary fake short URL (frontend demo)
-  const shortUrl = "https://urlify.io/" + Math.random().toString(36).substring(7);
+    // We wrap the API URL with a proxy to avoid CORS errors
+    const proxyUrl = "https://corsproxy.io/?";
+    const apiUrl = "https://cleanuri.com/api/v1/shorten";
 
-  // Show result
-  let result = document.getElementById("result");
-  if (!result) {
-    result = document.createElement("p");
-    result.id = "result";
-    document.body.appendChild(result);
-  }
+    try {
+        const response = await fetch(proxyUrl + apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ url: longUrl }) // CleanURI expects form-data
+        });
 
-  result.innerHTML = `Short URL: <a href="${longUrl}" target="_blank">${shortUrl}</a>`;
-}
+        const data = await response.json();
+        if (data.result_url) {
+            // Update your UI here to show the link
+            alert("Shortened Link: " + data.result_url);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Something went wrong. Check the console!");
+    }
+});
 
